@@ -9,21 +9,22 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 50px;
+    padding-top: 25px; /* Ajuste para mobile */
 }
 
 h1 {
     color: #1a73e8;
     text-align: center;
+    font-size: 1.8rem; /* Tamanho ajustado para mobile */
 }
 
 /* Estilização dos contêineres principais */
 form, ul {
     background-color: #fff;
-    padding: 25px;
+    padding: 20px; /* Ajuste para mobile */
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 100%;
+    width: 95%; /* Ajuste para ocupar a maior parte da tela */
     max-width: 400px;
     margin-bottom: 20px;
 }
@@ -51,7 +52,7 @@ button {
     background-color: #1a73e8;
     color: #fff;
     border-radius: 4px;
-    font-size: 16px;
+    font-size: 1rem; /* Ajuste para mobile */
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
@@ -99,7 +100,7 @@ a:hover {
 }
 
 #logout-button {
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 700;
 }
 
@@ -111,9 +112,9 @@ a:hover {
     padding: 8px 12px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: 0.9rem;
     transition: background-color 0.3s ease;
-    width: auto;
+    width: 100%; /* Ajuste para mobile */
     margin-top: 10px;
 }
 
@@ -134,12 +135,12 @@ a:hover {
 
 .user-info .fas.fa-user {
     margin-right: 15px;
-    font-size: 1.2em;
+    font-size: 1.2rem;
     color: #1a73e8;
-    margin-top: 5px; /* Alinha o ícone com o texto */
+    margin-top: 5px;
 }
 
-/* NOVAS REGRAS PARA O LAYOUT VERTICAL */
+/* REGRAS PARA O LAYOUT VERTICAL */
 .user-details {
     display: flex;
     flex-direction: column;
@@ -148,7 +149,8 @@ a:hover {
 }
 
 .user-details p {
-    margin: 2px 0; /* Espaço entre as linhas */
+    margin: 2px 0;
+    font-size: 0.9rem; /* Tamanho da fonte ajustado */
 }
 
 .user-details p strong {
