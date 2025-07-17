@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minha Loja Virtual</title>
-    <!-- Link para Font Awesome para ícones (opcional, se você quiser usar ícones de carrinho, etc.) -->
+    <!-- Link para Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            font-family: 'Inter', sans-serif; /* Usando Inter como sugerido */
+            font-family: 'Inter', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -37,19 +37,20 @@
             color: white;
             padding: 10px 20px;
             border: none;
-            border-radius: 8px; /* Cantos arredondados */
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1em;
-            transition: background-color 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra */
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .logout-button:hover {
             background-color: #c82333;
+            transform: translateY(-2px);
         }
 
         .products-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Layout responsivo de grade */
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 25px;
             width: 100%;
             max-width: 1200px;
@@ -57,8 +58,8 @@
         }
         .product-card {
             background-color: #fff;
-            border-radius: 12px; /* Cantos arredondados */
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); /* Sombra mais pronunciada */
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -72,11 +73,11 @@
         }
         .product-card img {
             max-width: 100%;
-            height: 200px; /* Altura fixa para imagens */
-            object-fit: contain; /* Garante que a imagem caiba sem cortar */
+            height: 200px;
+            object-fit: contain;
             border-radius: 8px;
             margin-bottom: 15px;
-            background-color: #e9ecef; /* Fundo para imagens placeholder */
+            background-color: #e9ecef;
         }
         .product-card h3 {
             color: #333;
@@ -87,27 +88,28 @@
             color: #666;
             font-size: 0.95em;
             margin-bottom: 15px;
-            flex-grow: 1; /* Faz o parágrafo ocupar espaço disponível */
+            flex-grow: 1;
         }
         .product-card .price {
             font-size: 1.6em;
-            color: #007bff; /* Cor azul para o preço */
+            color: #007bff;
             font-weight: bold;
             margin-bottom: 20px;
         }
-        .add-to-cart-button {
-            background-color: #28a745;
+        .buy-button {
+            background-color: #007bff;
             color: white;
             padding: 12px 25px;
             border: none;
-            border-radius: 8px; /* Cantos arredondados */
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1.1em;
             transition: background-color 0.3s ease, transform 0.1s ease;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
         }
-        .add-to-cart-button:hover {
-            background-color: #218838;
+        .buy-button:hover {
+            background-color: #0056b3;
             transform: translateY(-2px);
         }
         .message {
@@ -120,7 +122,109 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
-        /* Responsividade para telas menores */
+        /* Modal de Pagamento */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #333;
+            text-decoration: none;
+        }
+        .modal-content h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: calc(100% - 20px);
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .pay-button {
+            background-color: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            width: 100%;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .pay-button:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+        .payment-message {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .payment-message.success {
+            color: #28a745;
+        }
+        .payment-message.error {
+            color: #dc3545;
+        }
+
+        /* Responsividade */
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
@@ -130,7 +234,11 @@
                 margin-bottom: 15px;
             }
             .products-container {
-                grid-template-columns: 1fr; /* Uma coluna em telas pequenas */
+                grid-template-columns: 1fr;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 0;
             }
         }
     </style>
@@ -146,10 +254,50 @@
         <p class="message">Carregando produtos...</p>
     </div>
 
+    <!-- Modal de Pagamento -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Finalizar Compra</h2>
+            <p style="color: #dc3545; font-weight: bold; text-align: center;">
+                ATENÇÃO: Este é um formulário de pagamento SIMULADO.
+                Nenhum dado real de cartão será processado ou armazenado.
+            </p>
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label for="card-number">Número do Cartão</label>
+                    <input type="text" id="card-number" placeholder="XXXX XXXX XXXX XXXX" required pattern="[0-9]{13,16}" title="Apenas números, 13 a 16 dígitos">
+                </div>
+                <div class="form-group">
+                    <label for="card-name">Nome no Cartão</label>
+                    <input type="text" id="card-name" placeholder="Nome Completo" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="expiry-date">Validade (MM/AA)</label>
+                        <input type="text" id="expiry-date" placeholder="MM/AA" required pattern="(0[1-9]|1[0-2])\/[0-9]{2}" title="Formato MM/AA">
+                    </div>
+                    <div class="form-group">
+                        <label for="cvv">CVV</label>
+                        <input type="text" id="cvv" placeholder="XXX" required pattern="[0-9]{3,4}" title="3 ou 4 dígitos">
+                    </div>
+                </div>
+                <button type="submit" class="pay-button">Pagar</button>
+                <p id="payment-message" class="payment-message"></p>
+            </form>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const logoutButton = document.getElementById('logout-button');
             const productsContainer = document.getElementById('products-container');
+            const paymentModal = document.getElementById('paymentModal');
+            const closeButton = document.querySelector('.close-button');
+            const paymentForm = document.getElementById('paymentForm');
+            const paymentMessage = document.getElementById('payment-message');
+
+            let selectedProduct = null;
 
             // Lógica de logout
             logoutButton.addEventListener('click', () => {
@@ -164,58 +312,65 @@
                     name: 'Smartphone X',
                     description: 'Um smartphone de última geração com câmera de alta resolução.',
                     price: 1999.99,
-                    imageUrl: 'https://placehold.co/300x200/007bff/ffffff?text=Smartphone'
+                    imageUrl: 'assets/celular.jpg' // Caminho local
                 },
                 {
                     id: 2,
                     name: 'Smart TV 55"',
                     description: 'Experiência imersiva com tela 4K e recursos inteligentes.',
                     price: 3499.00,
-                    imageUrl: 'https://placehold.co/300x200/28a745/ffffff?text=Smart+TV'
+                    imageUrl: 'assets/tv55.jpg' // Caminho local
                 },
                 {
                     id: 3,
                     name: 'Fone de Ouvido Bluetooth',
                     description: 'Qualidade de som superior e conforto para o dia a dia.',
                     price: 249.50,
-                    imageUrl: 'https://placehold.co/300x200/ffc107/000000?text=Fone'
+                    imageUrl: 'assets/images/fone.jpg' // Caminho local
                 },
                 {
                     id: 4,
                     name: 'Notebook Gamer',
                     description: 'Potência e desempenho para os jogos mais exigentes.',
                     price: 5899.90,
-                    imageUrl: 'https://placehold.co/300x200/17a2b8/ffffff?text=Notebook'
+                    imageUrl: 'assets/images/notebook.jpg' // Caminho local
                 },
                 {
                     id: 5,
                     name: 'Câmera Digital DSLR',
                     description: 'Capture momentos com clareza e detalhes profissionais.',
                     price: 2100.00,
-                    imageUrl: 'https://placehold.co/300x200/6f42c1/ffffff?text=Camera'
+                    imageUrl: 'assets/images/camera.jpg' // Caminho local
                 },
                 {
                     id: 6,
                     name: 'Smartwatch Esportivo',
                     description: 'Monitore sua saúde e atividades com estilo.',
                     price: 799.00,
-                    imageUrl: 'https://placehold.co/300x200/fd7e14/ffffff?text=Smartwatch'
+                    imageUrl: 'assets/images/smartwatch.jpg' // Caminho local
+                },
+                {
+                    id: 7,
+                    name: 'Console de Videogame',
+                    description: 'Entretenimento de ponta para jogos e multimídia.',
+                    price: 2500.00,
+                    imageUrl: 'assets/images/console.jpg' // Caminho local
+                },
+                {
+                    id: 8,
+                    name: 'Caixa de Som Bluetooth',
+                    description: 'Áudio potente e portátil para suas festas.',
+                    price: 350.00,
+                    imageUrl: 'assets/images/caixa_som.jpg' // Caminho local
                 }
             ];
 
             // Função para buscar e exibir os produtos
             const fetchAndDisplayProducts = async () => {
-                // Em uma aplicação real, você faria uma requisição para sua API de backend aqui:
-                // const response = await fetch(`${API_URL}/products`, { headers: { 'Authorization': `Bearer ${token}` } });
-                // const products = await response.json();
-
-                // Por enquanto, usamos os dados simulados
-                const products = mockProducts; 
-
                 productsContainer.innerHTML = ''; // Limpa a mensagem de carregamento
 
-                if (products.length > 0) {
-                    products.forEach(product => {
+                if (mockProducts.length > 0) {
+                    mockProducts.forEach(product => {
                         const productCard = document.createElement('div');
                         productCard.classList.add('product-card');
                         productCard.innerHTML = `
@@ -223,8 +378,8 @@
                             <h3>${product.name}</h3>
                             <p>${product.description}</p>
                             <span class="price">R$ ${product.price.toFixed(2).replace('.', ',')}</span>
-                            <button class="add-to-cart-button" data-product-id="${product.id}">
-                                <i class="fas fa-shopping-cart"></i> Adicionar ao Carrinho
+                            <button class="buy-button" data-product-id="${product.id}">
+                                <i class="fas fa-shopping-cart"></i> Comprar
                             </button>
                         `;
                         productsContainer.appendChild(productCard);
@@ -234,7 +389,88 @@
                 }
             };
 
-            // Chama a função para carregar e exibir os produtos quando a página é carregada
+            // Abre o modal de pagamento quando o botão "Comprar" é clicado
+            productsContainer.addEventListener('click', (event) => {
+                const buyButton = event.target.closest('.buy-button');
+                if (buyButton) {
+                    const productId = parseInt(buyButton.dataset.productId);
+                    selectedProduct = mockProducts.find(p => p.id === productId);
+                    if (selectedProduct) {
+                        paymentModal.style.display = 'flex';
+                        paymentMessage.textContent = '';
+                        paymentForm.reset();
+                    }
+                }
+            });
+
+            // Fecha o modal quando o botão de fechar (X) é clicado
+            closeButton.addEventListener('click', () => {
+                paymentModal.style.display = 'none';
+            });
+
+            // Fecha o modal se o usuário clicar fora do conteúdo do modal
+            window.addEventListener('click', (event) => {
+                if (event.target === paymentModal) {
+                    paymentModal.style.display = 'none';
+                }
+            });
+
+            // Lógica de simulação de pagamento
+            paymentForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                paymentMessage.textContent = 'Processando pagamento...';
+                paymentMessage.className = 'payment-message';
+
+                const cardNumber = document.getElementById('card-number').value;
+                const cardName = document.getElementById('card-name').value;
+                const expiryDate = document.getElementById('expiry-date').value;
+                const cvv = document.getElementById('cvv').value;
+
+                // Simulação de validação básica (apenas para demonstração)
+                if (cardNumber.length < 13 || cardNumber.length > 16 || !/^\d+$/.test(cardNumber)) {
+                    paymentMessage.textContent = 'Número do cartão inválido.';
+                    paymentMessage.classList.add('error');
+                    return;
+                }
+                if (!cardName.trim()) {
+                    paymentMessage.textContent = 'Nome no cartão é obrigatório.';
+                    paymentMessage.classList.add('error');
+                    return;
+                }
+                if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiryDate)) {
+                    paymentMessage.textContent = 'Data de validade inválida (MM/AA).';
+                    paymentMessage.classList.add('error');
+                    return;
+                }
+                if (!/^\d{3,4}$/.test(cvv)) {
+                    paymentMessage.textContent = 'CVV inválido.';
+                    paymentMessage.classList.add('error');
+                    return;
+                }
+
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+
+                    const isPaymentSuccessful = Math.random() > 0.3;
+
+                    if (isPaymentSuccessful) {
+                        paymentMessage.textContent = `Pagamento de R$ ${selectedProduct.price.toFixed(2).replace('.', ',')} para ${selectedProduct.name} aprovado!`;
+                        paymentMessage.classList.add('success');
+                        setTimeout(() => {
+                            paymentModal.style.display = 'none';
+                            paymentForm.reset();
+                        }, 3000);
+                    } else {
+                        paymentMessage.textContent = 'Pagamento recusado. Tente novamente ou use outro cartão.';
+                        paymentMessage.classList.add('error');
+                    }
+                } catch (error) {
+                    console.error('Erro na simulação de pagamento:', error);
+                    paymentMessage.textContent = 'Ocorreu um erro ao processar o pagamento.';
+                    paymentMessage.classList.add('error');
+                }
+            });
+
             fetchAndDisplayProducts();
         });
     </script>
