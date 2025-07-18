@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Administração</title>
+    <title>Painel Admin - Gerenciar Produtos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
@@ -19,7 +19,7 @@
         }
         .header {
             width: 100%;
-            max-width: 1200px;
+            max-width: 1000px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -30,35 +30,53 @@
         .header h1 {
             color: #333;
             margin: 0;
+            font-size: 2em;
         }
-        .logout-button {
-            background-color: #dc3545;
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap; /* Permite que os botões quebrem a linha em telas menores */
+            justify-content: center; /* Centraliza os botões */
+        }
+        .nav-button, .logout-button {
+            background-color: #007bff;
             color: white;
-            padding: 10px 20px;
+            padding: 10px 15px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 1em;
+            font-size: 0.9em;
+            text-decoration: none;
             transition: background-color 0.3s ease, transform 0.1s ease;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .nav-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        .logout-button {
+            background-color: #dc3545;
         }
         .logout-button:hover {
             background-color: #c82333;
-            transform: translateY(-2px);
         }
-        .admin-section {
+        .container {
             background-color: #fff;
             border-radius: 12px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
             padding: 30px;
             width: 100%;
-            max-width: 800px;
+            max-width: 1000px;
+            box-sizing: border-box;
             margin-bottom: 25px;
-            text-align: center;
         }
-        .admin-section h2 {
+        .container h2 {
+            text-align: center;
             color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             font-size: 1.8em;
         }
         .form-group {
@@ -95,9 +113,9 @@
             background-color: #0056b3;
             transform: translateY(-2px);
         }
-        .product-list {
+        .product-list-section {
             width: 100%;
-            max-width: 800px;
+            max-width: 1000px;
             background-color: #fff;
             border-radius: 12px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
@@ -201,19 +219,59 @@
             color: #333;
             text-decoration: none;
         }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .header h1 {
+                margin-bottom: 15px;
+            }
+            .nav-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            .nav-button, .logout-button {
+                width: 100%;
+                justify-content: center;
+            }
+            .container, .product-list-section {
+                padding: 15px;
+            }
+            .product-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .product-item .actions {
+                width: 100%;
+                display: flex;
+                justify-content: flex-end;
+            }
+            .product-item .actions button {
+                margin-left: 5px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Painel de Administração</h1>
-        <button id="logout-button" class="logout-button">Sair</button>
+        <h1>Painel Admin</h1>
+        <div class="nav-buttons">
+            <a href="usuarios.html" class="nav-button"><i class="fas fa-users"></i> Gerenciar Usuários</a>
+            <a href="admin-products.html" class="nav-button"><i class="fas fa-box"></i> Gerenciar Produtos</a>
+            <a href="transacoes.html" class="nav-button"><i class="fas fa-receipt"></i> Ver Transações</a>
+            <button id="logout-button" class="logout-button"><i class="fas fa-sign-out-alt"></i> Sair</button>
+        </div>
     </div>
 
     <div id="auth-status-message" class="message">Verificando status de autenticação...</div>
 
     <div id="admin-content" style="display: none;">
-        <div class="admin-section">
-            <h2>Adicionar Novo Produto</h2>
+        <div class="container">
+            <h2>Adicionar/Editar Produto</h2>
             <form id="product-form">
                 <input type="hidden" id="product-id">
                 <div class="form-group">
@@ -237,7 +295,7 @@
             <div id="form-message" class="message"></div>
         </div>
 
-        <div class="product-list">
+        <div class="product-list-section">
             <h2>Produtos Existentes</h2>
             <div id="products-list-container">
                 <!-- Produtos serão carregados aqui -->
@@ -302,48 +360,53 @@
             // --- FUNÇÃO DE VERIFICAÇÃO DE AUTENTICAÇÃO E ROLE ---
             const checkAuthAndRole = async () => {
                 const token = localStorage.getItem('authToken');
-                console.log('Verificando autenticação e role...');
-                console.log('Token no localStorage:', token ? 'Presente' : 'Ausente');
+                console.log('checkAuthAndRole: Verificando autenticação e role...');
+                console.log('checkAuthAndRole: Token no localStorage:', token ? 'Presente' : 'Ausente');
 
                 if (!token) {
                     authStatusMessage.textContent = 'Você não está logado. Redirecionando para o login...';
                     authStatusMessage.classList.add('error');
-                    console.log('Token ausente. Redirecionando para login.');
-                    setTimeout(() => window.location.href = 'login.html', 2000);
+                    console.log('checkAuthAndRole: Token ausente. Redirecionando para login.');
+                    // Corrigido: Usar caminho absoluto para redirecionamento
+                    setTimeout(() => window.location.href = '/login.html', 2000);
                     return false;
                 }
 
                 const decodedToken = decodeJwt(token);
-                console.log('Token decodificado:', decodedToken);
+                console.log('checkAuthAndRole: Token decodificado:', decodedToken);
 
                 if (!decodedToken || decodedToken.exp * 1000 < Date.now()) {
                     authStatusMessage.textContent = 'Sua sessão expirou ou o token é inválido. Redirecionando para o login...';
                     authStatusMessage.classList.add('error');
-                    console.log('Token inválido ou expirado. Redirecionando para login.');
+                    console.log('checkAuthAndRole: Token inválido ou expirado. Redirecionando para login.');
                     localStorage.removeItem('authToken'); // Limpa token inválido/expirado
-                    setTimeout(() => window.location.href = 'login.html', 2000);
+                    // Corrigido: Usar caminho absoluto para redirecionamento
+                    setTimeout(() => window.location.href = '/login.html', 2000);
                     return false;
                 }
 
                 if (decodedToken.role !== 'admin') {
                     authStatusMessage.textContent = 'Acesso negado. Você não tem permissões de administrador. Redirecionando...';
                     authStatusMessage.classList.add('error');
-                    console.log('Role não é admin. Redirecionando.');
-                    setTimeout(() => window.location.href = 'loja.html', 2000); // Redireciona para loja se não for admin
+                    console.log('checkAuthAndRole: Role não é admin. Redirecionando.');
+                    // Corrigido: Usar caminho absoluto para redirecionamento
+                    setTimeout(() => window.location.href = '/loja.html', 2000); // Redireciona para loja se não for admin
                     return false;
                 }
 
                 authStatusMessage.textContent = 'Autenticado como administrador.';
                 authStatusMessage.classList.add('success');
                 adminContent.style.display = 'block'; // Mostra o conteúdo admin
-                console.log('Autenticação e role verificadas com sucesso.');
+                console.log('checkAuthAndRole: Autenticação e role verificadas com sucesso.');
                 return true;
             };
 
             // Lógica de logout
             logoutButton.addEventListener('click', () => {
+                console.log('Botão Sair clicado. Removendo authToken do localStorage.');
                 localStorage.removeItem('authToken');
-                window.location.href = 'login.html';
+                // Corrigido: Usar caminho absoluto para redirecionamento
+                window.location.href = '/login.html';
             });
 
             // Função para buscar e exibir os produtos
@@ -355,23 +418,40 @@
                 if (!token) {
                     listMessage.textContent = 'Erro: Token de autenticação ausente para carregar produtos.';
                     listMessage.classList.add('error');
+                    console.log('fetchProducts: Token ausente.');
                     return;
                 }
-
+                console.log('fetchProducts: Tentando buscar produtos com token...');
                 try {
+                    // A rota /products GET é pública, mas para garantir que o token está funcionando, enviamos.
+                    // Se o seu backend exige autenticação para GET /products, isso é necessário.
                     const response = await fetch(`${API_URL}/products`, {
                         headers: {
-                            'Authorization': `Bearer ${token}`
+                            'Authorization': `Bearer ${token}` // Envia o token na requisição
                         }
                     });
                     
+                    console.log('fetchProducts: Resposta da API de produtos:', response.status, response.statusText);
+
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                        console.error('fetchProducts: Erro na resposta da API:', errorData);
+                        // Se for 403 ou 401, o token provavelmente é inválido/expirado
+                        if (response.status === 401 || response.status === 403) {
+                            listMessage.textContent = 'Sua sessão expirou ou o token é inválido. Redirecionando para o login...';
+                            listMessage.classList.add('error');
+                            localStorage.removeItem('authToken');
+                            // Corrigido: Usar caminho absoluto para redirecionamento
+                            setTimeout(() => window.location.href = '/login.html', 2000);
+                        } else {
+                            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                        }
+                        return; // Sai da função após lidar com o erro
                     }
                     
-                    const products = await response.json();
-                    productsListContainer.innerHTML = '';
+                    const products = await response.json(); // Converte a resposta para JSON
+                    console.log('fetchProducts: Produtos recebidos:', products);
+                    productsListContainer.innerHTML = ''; // Limpa a mensagem de carregamento
 
                     if (products.length > 0) {
                         products.forEach(product => {
@@ -395,7 +475,7 @@
                         productsListContainer.innerHTML = '<p class="message">Nenhum produto cadastrado.</p>';
                     }
                 } catch (error) {
-                    console.error('Erro ao buscar produtos:', error);
+                    console.error('fetchProducts: Erro ao buscar produtos:', error);
                     listMessage.textContent = `Erro ao carregar produtos: ${error.message}.`;
                     listMessage.classList.add('error');
                 }
@@ -411,8 +491,15 @@
                 const name = productNameInput.value;
                 const description = productDescriptionInput.value;
                 const price = parseFloat(productPriceInput.value);
-                const imageUrl = productImageUrlInput.value;
+                const imageUrl = productImageUrlInput.value; // Obtém o valor do campo URL da Imagem
                 const token = localStorage.getItem('authToken');
+
+                console.log('Submissão do formulário de produto:');
+                console.log('  ID:', id);
+                console.log('  Nome:', name);
+                console.log('  Preço:', price);
+                console.log('  URL da Imagem (raw):', productImageUrlInput.value); // Log do valor bruto do input
+                console.log('  URL da Imagem (variável imageUrl):', imageUrl); // Log da variável que será enviada
 
                 if (!token) {
                     formMessage.textContent = 'Erro: Token de autenticação ausente.';
@@ -424,16 +511,25 @@
                 const url = id ? `${API_URL}/products/${id}` : `${API_URL}/products`;
 
                 try {
+                    const payload = {
+                        name,
+                        description,
+                        price,
+                        image_url: imageUrl // Envia a URL da imagem
+                    };
+                    console.log('Payload enviado para o backend:', payload);
+
                     const response = await fetch(url, {
                         method: method,
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}`
                         },
-                        body: JSON.stringify({ name, description, price, image_url: imageUrl })
+                        body: JSON.stringify(payload)
                     });
 
                     const data = await response.json();
+                    console.log('Resposta do backend:', response.status, data); // Log da resposta completa do backend
 
                     if (response.ok) {
                         formMessage.textContent = `Produto ${id ? 'atualizado' : 'adicionado'} com sucesso!`;
@@ -447,7 +543,7 @@
                         formMessage.classList.add('error');
                     }
                 } catch (error) {
-                    console.error('Erro na operação do produto:', error);
+                    console.error('Erro na operação do produto (catch):', error);
                     formMessage.textContent = `Ocorreu um erro inesperado: ${error.message}`;
                     formMessage.classList.add('error');
                 }

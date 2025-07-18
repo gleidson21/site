@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Admin - Gerenciar Usuários</title>
+    <title>Painel Admin - Ver Transações</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
@@ -98,19 +98,6 @@
         tr:hover {
             background-color: #f1f1f1;
         }
-        .delete-button {
-            background-color: #dc3545;
-            color: white;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: background-color 0.3s ease;
-        }
-        .delete-button:hover {
-            background-color: #c82333;
-        }
         .message {
             margin-top: 20px;
             padding: 10px 20px;
@@ -122,11 +109,6 @@
             color: #721c24;
             background-color: #f8d7da;
             border-color: #f5c6cb;
-        }
-        .message.success {
-            color: #155724;
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
         }
 
         /* Responsividade */
@@ -176,10 +158,12 @@
                 text-align: left;
                 font-weight: bold;
             }
-            td:nth-of-type(1):before { content: "ID:"; }
-            td:nth-of-type(2):before { content: "Email:"; }
-            td:nth-of-type(3):before { content: "Função:"; }
-            td:nth-of-type(4):before { content: "Ações:"; }
+            td:nth-of-type(1):before { content: "ID Transação:"; }
+            td:nth-of-type(2):before { content: "Usuário:"; }
+            td:nth-of-type(3):before { content: "Produto:"; }
+            td:nth-of-type(4):before { content: "Valor:"; }
+            td:nth-of-type(5):before { content: "Status:"; }
+            td:nth-of-type(6):before { content: "Data:"; }
         }
     </style>
 </head>
@@ -195,20 +179,22 @@
     </div>
 
     <div class="container">
-        <h2>Gerenciar Usuários</h2>
-        <p id="user-list-message" class="message"></p>
-        <table id="users-table">
+        <h2>Ver Transações</h2>
+        <p id="transaction-list-message" class="message"></p>
+        <table id="transactions-table">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Email</th>
-                    <th>Função</th>
-                    <th>Ações</th>
+                    <th>ID Transação</th>
+                    <th>Usuário</th>
+                    <th>Produto</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                    <th>Data</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Usuários serão carregados aqui -->
-                <tr><td colspan="4" style="text-align: center;">Carregando usuários...</td></tr>
+                <!-- Transações serão carregadas aqui -->
+                <tr><td colspan="6" style="text-align: center;">Carregando transações...</td></tr>
             </tbody>
         </table>
     </div>
@@ -216,22 +202,21 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const logoutButton = document.getElementById('logout-button');
-            const usersTableBody = document.querySelector('#users-table tbody');
-            const userListMessage = document.getElementById('user-list-message');
+            const transactionsTableBody = document.querySelector('#transactions-table tbody');
+            const transactionListMessage = document.getElementById('transaction-list-message');
             const API_URL = 'https://api-backend-2025.onrender.com'; // Sua URL do backend no Render
 
             // Função para redirecionar se não for admin ou não tiver token
             const checkAdminAuth = async () => {
                 const token = localStorage.getItem('authToken');
-                console.log('checkAdminAuth: Verificando autenticação...');
                 if (!token) {
                     window.location.href = '/login.html'; // Redireciona para login se não houver token
                     return false;
                 }
 
                 try {
-                    // Valida o token e verifica se é admin
-                    const response = await fetch(`${API_URL}/users`, { // Rota protegida por isAdmin
+                    // Valida o token e verifica se é admin (usando uma rota protegida por isAdmin)
+                    const response = await fetch(`${API_URL}/transactions`, { // Esta rota é protegida por isAdmin
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
@@ -256,20 +241,20 @@
                 window.location.href = '/login.html';
             });
 
-            // Função para buscar e exibir os usuários
-            const fetchAndDisplayUsers = async () => {
-                usersTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Carregando usuários...</td></tr>';
-                userListMessage.textContent = '';
+            // Função para buscar e exibir as transações
+            const fetchAndDisplayTransactions = async () => {
+                transactionsTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Carregando transações...</td></tr>';
+                transactionListMessage.textContent = '';
                 const token = localStorage.getItem('authToken');
 
                 if (!token) {
-                    userListMessage.textContent = 'Erro: Token de autenticação não encontrado.';
-                    userListMessage.classList.add('error');
+                    transactionListMessage.textContent = 'Erro: Token de autenticação não encontrado.';
+                    transactionListMessage.classList.add('error');
                     return;
                 }
 
                 try {
-                    const response = await fetch(`${API_URL}/users`, {
+                    const response = await fetch(`${API_URL}/transactions`, {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
@@ -277,85 +262,44 @@
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.error || 'Não foi possível carregar os usuários.');
+                        throw new Error(errorData.error || 'Não foi possível carregar as transações.');
                     }
 
-                    const users = await response.json();
-                    usersTableBody.innerHTML = ''; // Limpa a mensagem de carregamento
+                    const transactions = await response.json();
+                    transactionsTableBody.innerHTML = ''; // Limpa a mensagem de carregamento
 
-                    if (users.length > 0) {
-                        users.forEach(user => {
+                    if (transactions.length > 0) {
+                        transactions.forEach(transaction => {
                             const row = document.createElement('tr');
+                            const transactionDate = new Date(transaction.createdAt).toLocaleDateString('pt-BR');
+                            const transactionTime = new Date(transaction.createdAt).toLocaleTimeString('pt-BR');
+                            const displayAmount = parseFloat(transaction.amount).toFixed(2).replace('.', ',');
+
                             row.innerHTML = `
-                                <td>${user.id}</td>
-                                <td>${user.email}</td>
-                                <td>${user.role}</td>
-                                <td>
-                                    <button class="delete-button" data-user-id="${user.id}">
-                                        <i class="fas fa-trash-alt"></i> Deletar
-                                    </button>
-                                </td>
+                                <td>${transaction.transaction_id.substring(0, 8)}...</td>
+                                <td>${transaction.user ? transaction.user.email : 'N/A'}</td>
+                                <td>${transaction.product ? transaction.product.name : 'N/A'}</td>
+                                <td>R$ ${displayAmount}</td>
+                                <td>${transaction.paymentStatus}</td>
+                                <td>${transactionDate} ${transactionTime}</td>
                             `;
-                            usersTableBody.appendChild(row);
+                            transactionsTableBody.appendChild(row);
                         });
                     } else {
-                        usersTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum usuário encontrado.</td></tr>';
+                        transactionsTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhuma transação encontrada.</td></tr>';
                     }
 
                 } catch (error) {
-                    console.error('Erro ao buscar usuários:', error);
-                    userListMessage.textContent = `Erro ao carregar usuários: ${error.message}`;
-                    userListMessage.classList.add('error');
+                    console.error('Erro ao buscar transações:', error);
+                    transactionListMessage.textContent = `Erro ao carregar transações: ${error.message}`;
+                    transactionListMessage.classList.add('error');
                 }
             };
 
-            // Lógica para deletar usuário
-            usersTableBody.addEventListener('click', async (event) => {
-                const deleteButton = event.target.closest('.delete-button');
-                if (deleteButton) {
-                    const userId = deleteButton.dataset.userId;
-                    // Substituído confirm() por uma mensagem mais amigável ou modal customizado
-                    const userConfirmed = window.confirm('Tem certeza que deseja deletar este usuário?');
-                    
-                    if (userConfirmed) {
-                        const token = localStorage.getItem('authToken');
-                        if (!token) {
-                            userListMessage.textContent = 'Erro: Token de autenticação não encontrado.';
-                            userListMessage.classList.add('error');
-                            return;
-                        }
-
-                        try {
-                            const response = await fetch(`${API_URL}/users/${userId}`, {
-                                method: 'DELETE',
-                                headers: {
-                                    'Authorization': `Bearer ${token}`
-                                }
-                            });
-
-                            if (response.ok) {
-                                userListMessage.textContent = 'Usuário deletado com sucesso!';
-                                userListMessage.classList.remove('error');
-                                userListMessage.classList.add('success');
-                                fetchAndDisplayUsers(); // Recarrega a lista de usuários
-                            } else {
-                                const errorData = await response.json();
-                                userListMessage.textContent = `Erro ao deletar usuário: ${errorData.error || 'Erro desconhecido.'}`;
-                                userListMessage.classList.add('error');
-                            }
-                        } catch (error) {
-                            console.error('Erro ao deletar usuário:', error);
-                            userListMessage.textContent = 'Ocorreu um erro de conexão ao deletar o usuário.';
-                            userListMessage.classList.add('error');
-                        }
-                    }
-                }
-            });
-
-            // Executa a verificação de autenticação e carrega usuários se for admin
+            // Executa a verificação de autenticação e carrega transações se for admin
             checkAdminAuth().then(isAdmin => {
                 if (isAdmin) {
-                    fetchAndDisplayUsers();
+                    fetchAndDisplayTransactions();
                 }
             });
         });

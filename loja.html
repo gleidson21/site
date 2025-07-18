@@ -304,32 +304,61 @@
             // --- FUNÇÃO: Verifica se o usuário está logado ---
             const checkLoginStatus = () => {
                 const token = localStorage.getItem('authToken');
+                console.log('checkLoginStatus: Verificando token no localStorage...');
                 if (!token) {
-                    // Se não houver token, redireciona para a página de login
-                    window.location.href = 'login.html';
+                    console.log('checkLoginStatus: Token ausente. Redirecionando para login.html');
+                    window.location.href = '/login.html'; // Redireciona para login.html
                     return false;
                 }
+                console.log('checkLoginStatus: Token presente.');
                 return true;
             };
 
             // Lógica de logout
             logoutButton.addEventListener('click', () => {
+                console.log('Botão Sair clicado. Removendo authToken do localStorage.');
                 localStorage.removeItem('authToken');
-                window.location.href = 'login.html';
+                window.location.href = '/login.html'; // Redireciona para login.html
             });
 
             // Função para buscar e exibir os produtos do backend
             const fetchAndDisplayProducts = async () => {
                 productsContainer.innerHTML = '<p class="message">Carregando produtos do servidor...</p>'; // Mensagem de carregamento
+                const token = localStorage.getItem('authToken'); // Pega o token para a requisição
+
+                if (!token) {
+                    console.log('fetchAndDisplayProducts: Token ausente, não é possível carregar produtos. Redirecionando.');
+                    productsContainer.innerHTML = '<p class="message error">Erro: Você não está logado. Redirecionando para o login...</p>';
+                    setTimeout(() => window.location.href = '/login.html', 2000);
+                    return;
+                }
 
                 try {
-                    const response = await fetch(`${API_URL}/products`); // Requisição GET para a rota de produtos
+                    console.log('fetchAndDisplayProducts: Tentando buscar produtos de:', `${API_URL}/products`);
+                    const response = await fetch(`${API_URL}/products`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}` // Envia o token na requisição
+                        }
+                    });
                     
+                    console.log('fetchAndDisplayProducts: Resposta da API de produtos:', response.status, response.statusText);
+
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        const errorData = await response.json();
+                        console.error('fetchAndDisplayProducts: Erro na resposta da API:', errorData);
+                        // Se for 403 ou 401, o token provavelmente é inválido/expirado
+                        if (response.status === 401 || response.status === 403) {
+                            productsContainer.innerHTML = '<p class="message error">Sua sessão expirou ou o token é inválido. Redirecionando para o login...</p>';
+                            localStorage.removeItem('authToken');
+                            setTimeout(() => window.location.href = '/login.html', 2000);
+                        } else {
+                            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                        }
+                        return; // Sai da função após lidar com o erro
                     }
                     
                     const products = await response.json(); // Converte a resposta para JSON
+                    console.log('fetchAndDisplayProducts: Produtos recebidos:', products);
 
                     productsContainer.innerHTML = ''; // Limpa a mensagem de carregamento
 
@@ -357,7 +386,7 @@
                         productsContainer.innerHTML = '<p class="message">Nenhum produto disponível no momento. Adicione produtos no painel de administração.</p>';
                     }
                 } catch (error) {
-                    console.error('Erro ao buscar produtos:', error);
+                    console.error('fetchAndDisplayProducts: Erro ao buscar produtos:', error);
                     productsContainer.innerHTML = `<p class="message error">Erro ao carregar produtos: ${error.message}. Verifique a conexão com o backend.</p>`;
                 }
             };
@@ -375,10 +404,29 @@
                     console.log('Botão Comprar clicado. ID do Produto (dataset):', buyButton.dataset.productId); // Debug
                     console.log('ID do Produto (parseInt):', productId); // Debug
                     
-                    fetch(`${API_URL}/products/${productId}`)
+                    // Fetch para obter detalhes do produto (requer autenticação)
+                    const token = localStorage.getItem('authToken');
+                    if (!token) {
+                        console.log('Evento Comprar: Token ausente. Redirecionando para login.');
+                        // Já tratado por checkLoginStatus, mas para garantir
+                        return;
+                    }
+
+                    fetch(`${API_URL}/products/${productId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    })
                         .then(response => {
+                            console.log('Evento Comprar: Resposta da API de detalhes do produto:', response.status, response.statusText);
                             if (!response.ok) {
-                                throw new Error('Produto não encontrado no servidor.');
+                                if (response.status === 401 || response.status === 403) {
+                                    paymentMessage.textContent = 'Sua sessão expirou ou o token é inválido. Redirecionando para o login...';
+                                    paymentMessage.classList.add('error');
+                                    localStorage.removeItem('authToken');
+                                    setTimeout(() => window.location.href = '/login.html', 2000);
+                                }
+                                throw new Error('Produto não encontrado no servidor ou acesso negado.');
                             }
                             return response.json();
                         })
@@ -390,7 +438,7 @@
                             paymentForm.reset();
                         })
                         .catch(error => {
-                            console.error('Erro ao obter detalhes do produto:', error);
+                            console.error('Erro ao obter detalhes do produto para compra:', error);
                             paymentMessage.textContent = `Erro ao carregar detalhes do produto: ${error.message}`;
                             paymentMessage.classList.add('error');
                         });
@@ -460,7 +508,7 @@
                     if (!token) {
                         paymentMessage.textContent = 'Erro: Você não está logado. Faça login para comprar.';
                         paymentMessage.classList.add('error');
-                        setTimeout(() => window.location.href = 'login.html', 2000);
+                        setTimeout(() => window.location.href = '/login.html', 2000);
                         return;
                     }
 
@@ -486,6 +534,7 @@
                     });
 
                     const data = await response.json();
+                    console.log('Resposta do backend para process-payment:', response.status, data);
 
                     if (response.ok) {
                         const finalPrice = parseFloat(selectedProduct.price).toFixed(2).replace('.', ',');
@@ -506,8 +555,10 @@
                 }
             });
 
-            // Chama a função para carregar e exibir os produtos quando a página é carregada
-            fetchAndDisplayProducts();
+            // Inicia a verificação de login e carregamento de produtos
+            if (checkLoginStatus()) {
+                fetchAndDisplayProducts();
+            }
         });
     </script>
 </body>
