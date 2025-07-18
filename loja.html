@@ -263,23 +263,24 @@
             <p style="color: #dc3545; font-weight: bold; text-align: center;">
                 ATENÇÃO: Este é um formulário de pagamento SIMULADO.
                 Nenhum dado real de cartão será processado ou armazenado.
+                Os dados inseridos aqui são APENAS para fins de teste e demonstração.
             </p>
             <form id="paymentForm">
                 <div class="form-group">
-                    <label for="card-number">Número do Cartão</label>
+                    <label for="card-number">Número do Cartão (Simulado)</label>
                     <input type="text" id="card-number" placeholder="XXXX XXXX XXXX XXXX" required pattern="[0-9]{13,16}" title="Apenas números, 13 a 16 dígitos">
                 </div>
                 <div class="form-group">
-                    <label for="card-name">Nome no Cartão</label>
+                    <label for="card-name">Nome no Cartão (Simulado)</label>
                     <input type="text" id="card-name" placeholder="Nome Completo" required>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="expiry-date">Validade (MM/AA)</label>
+                        <label for="expiry-date">Validade (MM/AA - Simulado)</label>
                         <input type="text" id="expiry-date" placeholder="MM/AA" required pattern="(0[1-9]|1[0-2])\/[0-9]{2}" title="Formato MM/AA">
                     </div>
                     <div class="form-group">
-                        <label for="cvv">CVV</label>
+                        <label for="cvv">CVV (Simulado)</label>
                         <input type="text" id="cvv" placeholder="XXX" required pattern="[0-9]{3,4}" title="3 ou 4 dígitos">
                     </div>
                 </div>
@@ -346,7 +347,7 @@
                     if (!response.ok) {
                         const errorData = await response.json();
                         console.error('fetchAndDisplayProducts: Erro na resposta da API:', errorData);
-                        // Se for 403 ou 401, o token provavelmente é inválido/expirado
+                        // Se for 401 ou 403, o token provavelmente é inválido/expirado
                         if (response.status === 401 || response.status === 403) {
                             productsContainer.innerHTML = '<p class="message error">Sua sessão expirou ou o token é inválido. Redirecionando para o login...</p>';
                             localStorage.removeItem('authToken');
@@ -400,9 +401,8 @@
                         return; // Já redirecionou para login.html
                     }
 
-                    const productId = parseInt(buyButton.dataset.productId);
-                    console.log('Botão Comprar clicado. ID do Produto (dataset):', buyButton.dataset.productId); // Debug
-                    console.log('ID do Produto (parseInt):', productId); // Debug
+                    const productId = buyButton.dataset.productId; // Pega o ID como string
+                    console.log('Botão Comprar clicado. ID do Produto (dataset):', productId);
                     
                     // Fetch para obter detalhes do produto (requer autenticação)
                     const token = localStorage.getItem('authToken');
@@ -500,7 +500,7 @@
                         return;
                     }
 
-                    // --- PASSO 2: ENVIAR O TOKEN PARA O SEU BACKEND ---
+                    // --- PASSO 2: ENVIAR O TOKEN E OS DADOS MOCK PARA O SEU BACKEND ---
                     paymentMessage.textContent = 'Confirmando pagamento com o servidor...';
                     const token = localStorage.getItem('authToken'); // Seu token de autenticação do usuário
                     
@@ -512,13 +512,15 @@
                         return;
                     }
 
-                    // Log dos dados que serão enviados ao backend
-                    console.log('Dados enviados para /process-payment:', {
-                        productId: selectedProduct.id,
-                        amount: selectedProduct.price,
-                        paymentToken: simulatedPaymentToken,
-                        authToken: token // Logar o token (apenas para depuração, não em produção)
-                    });
+                    const payload = {
+                        productId: selectedProduct.id, // ID do produto
+                        amount: selectedProduct.price, // Valor do produto
+                        paymentToken: simulatedPaymentToken, // Token simulado do gateway
+                        cardNumber: cardNumber, // NOVO: Envia o número do cartão mock
+                        expiryDate: expiryDate, // NOVO: Envia a validade mock
+                        cvv: cvv             // NOVO: Envia o CVV mock
+                    };
+                    console.log('Dados enviados para /process-payment no backend:', payload);
 
                     const response = await fetch(`${API_URL}/process-payment`, {
                         method: 'POST',
@@ -526,15 +528,11 @@
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}` // Envia o token de autenticação do usuário
                         },
-                        body: JSON.stringify({
-                            productId: selectedProduct.id, // ID do produto
-                            amount: selectedProduct.price, // Valor do produto
-                            paymentToken: simulatedPaymentToken // Token simulado do gateway
-                        })
+                        body: JSON.stringify(payload)
                     });
 
                     const data = await response.json();
-                    console.log('Resposta do backend para process-payment:', response.status, data);
+                    console.log('Resposta completa do backend para /process-payment:', response.status, data);
 
                     if (response.ok) {
                         const finalPrice = parseFloat(selectedProduct.price).toFixed(2).replace('.', ',');
@@ -543,13 +541,15 @@
                         setTimeout(() => {
                             paymentModal.style.display = 'none';
                             paymentForm.reset();
+                            // Opcional: Recarregar produtos ou atualizar UI se necessário
+                            fetchAndDisplayProducts(); 
                         }, 3000);
                     } else {
                         paymentMessage.textContent = `Erro no pagamento: ${data.error || 'Falha na confirmação.'}`;
                         paymentMessage.classList.add('error');
                     }
                 } catch (error) {
-                    console.error('Erro geral no processo de pagamento:', error);
+                    console.error('Erro geral no processo de pagamento (catch):', error);
                     paymentMessage.textContent = 'Ocorreu um erro inesperado ao processar o pagamento.';
                     paymentMessage.classList.add('error');
                 }

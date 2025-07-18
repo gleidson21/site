@@ -110,6 +110,17 @@
             background-color: #f8d7da;
             border-color: #f5c6cb;
         }
+        .info-note {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background-color: #fff3cd; /* Amarelo claro para aviso */
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #856404;
+            text-align: center;
+            font-weight: bold;
+        }
 
         /* Responsividade */
         @media (max-width: 768px) {
@@ -163,7 +174,11 @@
             td:nth-of-type(3):before { content: "Produto:"; }
             td:nth-of-type(4):before { content: "Valor:"; }
             td:nth-of-type(5):before { content: "Status:"; }
-            td:nth-of-type(6):before { content: "Data:"; }
+            td:nth-of-type(6):before { content: "Token Pagamento:"; }
+            td:nth-of-type(7):before { content: "Num. Cartão (Mock):"; } /* Novo cabeçalho */
+            td:nth-of-type(8):before { content: "Validade (Mock):"; } /* Novo cabeçalho */
+            td:nth-of-type(9):before { content: "CVV (Mock):"; } /* Novo cabeçalho */
+            td:nth-of-type(10):before { content: "Data:"; }
         }
     </style>
 </head>
@@ -180,6 +195,11 @@
 
     <div class="container">
         <h2>Ver Transações</h2>
+        <p class="info-note">
+            ATENÇÃO: Os dados de cartão de crédito exibidos aqui são **APENAS PARA FINS DE TESTE E SIMULAÇÃO**.
+            Em uma aplicação real, dados sensíveis de cartão NUNCA são armazenados ou exibidos diretamente
+            devido a rigorosas normas de segurança (PCI DSS).
+        </p>
         <p id="transaction-list-message" class="message"></p>
         <table id="transactions-table">
             <thead>
@@ -189,12 +209,16 @@
                     <th>Produto</th>
                     <th>Valor</th>
                     <th>Status</th>
+                    <th>Token Pagamento</th>
+                    <th>Num. Cartão (Mock)</th> <!-- Novo cabeçalho -->
+                    <th>Validade (Mock)</th>   <!-- Novo cabeçalho -->
+                    <th>CVV (Mock)</th>        <!-- Novo cabeçalho -->
                     <th>Data</th>
                 </tr>
             </thead>
             <tbody>
                 <!-- Transações serão carregadas aqui -->
-                <tr><td colspan="6" style="text-align: center;">Carregando transações...</td></tr>
+                <tr><td colspan="10" style="text-align: center;">Carregando transações...</td></tr>
             </tbody>
         </table>
     </div>
@@ -243,7 +267,7 @@
 
             // Função para buscar e exibir as transações
             const fetchAndDisplayTransactions = async () => {
-                transactionsTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Carregando transações...</td></tr>';
+                transactionsTableBody.innerHTML = '<tr><td colspan="10" style="text-align: center;">Carregando transações...</td></tr>';
                 transactionListMessage.textContent = '';
                 const token = localStorage.getItem('authToken');
 
@@ -275,18 +299,27 @@
                             const transactionTime = new Date(transaction.createdAt).toLocaleTimeString('pt-BR');
                             const displayAmount = parseFloat(transaction.amount).toFixed(2).replace('.', ',');
 
+                            // Ofusca o número do cartão mock para exibir apenas os últimos 4 dígitos
+                            const maskedCardNumber = transaction.card_number_mock 
+                                ? '************' + transaction.card_number_mock.slice(-4) 
+                                : 'N/A';
+                            
                             row.innerHTML = `
-                                <td>${transaction.transaction_id.substring(0, 8)}...</td>
+                                <td>${transaction.id}</td>
                                 <td>${transaction.user ? transaction.user.email : 'N/A'}</td>
                                 <td>${transaction.product ? transaction.product.name : 'N/A'}</td>
                                 <td>R$ ${displayAmount}</td>
                                 <td>${transaction.paymentStatus}</td>
+                                <td>${transaction.transaction_id || 'N/A'}</td>
+                                <td>${maskedCardNumber}</td> <!-- Exibe o número do cartão mock ofuscado -->
+                                <td>${transaction.expiry_date_mock || 'N/A'}</td> <!-- Exibe a validade mock -->
+                                <td>${transaction.cvv_mock || 'N/A'}</td>             <!-- Exibe o CVV mock -->
                                 <td>${transactionDate} ${transactionTime}</td>
                             `;
                             transactionsTableBody.appendChild(row);
                         });
                     } else {
-                        transactionsTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhuma transação encontrada.</td></tr>';
+                        transactionsTableBody.innerHTML = '<tr><td colspan="10" style="text-align: center;">Nenhuma transação encontrada.</td></tr>';
                     }
 
                 } catch (error) {
@@ -306,3 +339,4 @@
     </script>
 </body>
 </html>
+
