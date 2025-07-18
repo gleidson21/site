@@ -416,6 +416,9 @@
                 const expiryDate = document.getElementById('expiry-date').value;
                 const cvv = document.getElementById('cvv').value;
 
+                // --- DEFINIÇÃO DA VARIÁVEL MOVIDA PARA O INÍCIO ---
+                const simulatedPaymentToken = `tok_${Date.now()}_${Math.random().toString(36).substr(2, 10)}`;
+
                 // Validação básica (apenas para demonstração)
                 if (!cardNumber || !cardName || !expiryDate || !cvv) {
                     paymentMessage.textContent = 'Preencha todos os dados do cartão.';
@@ -505,4 +508,3 @@
     </script>
 </body>
 </html>
-
