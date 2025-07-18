@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -371,6 +372,8 @@
                     }
 
                     const productId = parseInt(buyButton.dataset.productId);
+                    console.log('Botão Comprar clicado. ID do Produto (dataset):', buyButton.dataset.productId); // Debug
+                    console.log('ID do Produto (parseInt):', productId); // Debug
                     
                     fetch(`${API_URL}/products/${productId}`)
                         .then(response => {
@@ -381,6 +384,7 @@
                         })
                         .then(product => {
                             selectedProduct = product;
+                            console.log('Produto selecionado após fetch:', selectedProduct); // Debug
                             paymentModal.style.display = 'flex';
                             paymentMessage.textContent = '';
                             paymentForm.reset();
@@ -416,7 +420,6 @@
                 const expiryDate = document.getElementById('expiry-date').value;
                 const cvv = document.getElementById('cvv').value;
 
-                // --- DEFINIÇÃO DA VARIÁVEL MOVIDA PARA O INÍCIO ---
                 const simulatedPaymentToken = `tok_${Date.now()}_${Math.random().toString(36).substr(2, 10)}`;
 
                 // Validação básica (apenas para demonstração)
@@ -426,11 +429,12 @@
                     return;
                 }
                 
-                // --- NOVA VERIFICAÇÃO: Garante que selectedProduct não é nulo ---
+                // --- VERIFICAÇÃO CRÍTICA: Garante que selectedProduct e seu ID/preço não são nulos ---
+                console.log('Verificando selectedProduct antes de enviar pagamento:', selectedProduct); // Debug
                 if (!selectedProduct || !selectedProduct.id || !selectedProduct.price) {
                     paymentMessage.textContent = 'Erro: Produto selecionado inválido. Tente novamente.';
                     paymentMessage.classList.add('error');
-                    console.error('selectedProduct é nulo ou incompleto:', selectedProduct);
+                    console.error('selectedProduct é nulo ou incompleto na submissão do formulário:', selectedProduct);
                     return;
                 }
 
@@ -442,7 +446,7 @@
                     // FORÇADO: A simulação do gateway SEMPRE será bem-sucedida para teste
                     const isGatewaySuccess = true; 
 
-                    if (!isGatewaySuccess) { // Esta condição agora será sempre falsa
+                    if (!isGatewaySuccess) { 
                         paymentMessage.textContent = 'Falha na comunicação com o gateway de pagamento. Tente novamente.';
                         paymentMessage.classList.add('error');
                         return;
