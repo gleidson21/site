@@ -298,6 +298,7 @@
             const paymentMessage = document.getElementById('payment-message');
 
             let selectedProduct = null;
+            const API_URL = 'https://api-backend-2025.onrender.com'; // Sua URL do backend no Render
 
             // Lógica de logout
             logoutButton.addEventListener('click', () => {
@@ -305,87 +306,47 @@
                 window.location.href = 'login.html';
             });
 
-            // Simulação de dados de produtos (substitua por uma chamada à API real)
-            const mockProducts = [
-                {
-                    id: 1,
-                    name: 'Smartphone X',
-                    description: 'Um smartphone de última geração com câmera de alta resolução.',
-                    price: 1999.99,
-                    imageUrl: 'assets/celular.jpg' // Caminho local
-                },
-                {
-                    id: 2,
-                    name: 'Smart TV 55"',
-                    description: 'Experiência imersiva com tela 4K e recursos inteligentes.',
-                    price: 3499.00,
-                    imageUrl: 'assets/tv55.jpg' // Caminho local
-                },
-                {
-                    id: 3,
-                    name: 'Fone de Ouvido Bluetooth',
-                    description: 'Qualidade de som superior e conforto para o dia a dia.',
-                    price: 249.50,
-                    imageUrl: 'assets/fone.jpg' // Caminho local
-                },
-                {
-                    id: 4,
-                    name: 'Notebook Gamer',
-                    description: 'Potência e desempenho para os jogos mais exigentes.',
-                    price: 5899.90,
-                    imageUrl: 'assets/notbook.jpg' // Caminho local
-                },
-                {
-                    id: 5,
-                    name: 'Câmera Digital DSLR',
-                    description: 'Capture momentos com clareza e detalhes profissionais.',
-                    price: 2100.00,
-                    imageUrl: 'assets/camera.jpg' // Caminho local
-                },
-                {
-                    id: 6,
-                    name: 'Smartwatch Esportivo',
-                    description: 'Monitore sua saúde e atividades com estilo.',
-                    price: 799.00,
-                    imageUrl: 'assets/relogio.jpg' // Caminho local
-                },
-                {
-                    id: 7,
-                    name: 'Console de Videogame',
-                    description: 'Entretenimento de ponta para jogos e multimídia.',
-                    price: 2500.00,
-                    imageUrl: 'assets/console.jpg' // Caminho local
-                },
-                {
-                    id: 8,
-                    name: 'Caixa de Som Bluetooth',
-                    description: 'Áudio potente e portátil para suas festas.',
-                    price: 350.00,
-                    imageUrl: 'assets/caixa.webp' // Caminho local
-                }
-            ];
-
-            // Função para buscar e exibir os produtos
+            // Função para buscar e exibir os produtos do backend
             const fetchAndDisplayProducts = async () => {
-                productsContainer.innerHTML = ''; // Limpa a mensagem de carregamento
+                productsContainer.innerHTML = '<p class="message">Carregando produtos do servidor...</p>'; // Mensagem de carregamento
 
-                if (mockProducts.length > 0) {
-                    mockProducts.forEach(product => {
-                        const productCard = document.createElement('div');
-                        productCard.classList.add('product-card');
-                        productCard.innerHTML = `
-                            <img src="${product.imageUrl}" alt="${product.name}" onerror="this.onerror=null;this.src='https://placehold.co/300x200/cccccc/333333?text=Sem+Imagem';">
-                            <h3>${product.name}</h3>
-                            <p>${product.description}</p>
-                            <span class="price">R$ ${product.price.toFixed(2).replace('.', ',')}</span>
-                            <button class="buy-button" data-product-id="${product.id}">
-                                <i class="fas fa-shopping-cart"></i> Comprar
-                            </button>
-                        `;
-                        productsContainer.appendChild(productCard);
-                    });
-                } else {
-                    productsContainer.innerHTML = '<p class="message">Nenhum produto disponível no momento.</p>';
+                try {
+                    const response = await fetch(`${API_URL}/products`); // Requisição GET para a rota de produtos
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const products = await response.json(); // Converte a resposta para JSON
+
+                    productsContainer.innerHTML = ''; // Limpa a mensagem de carregamento
+
+                    if (products.length > 0) {
+                        products.forEach(product => {
+                            const productCard = document.createElement('div');
+                            productCard.classList.add('product-card');
+                            const displayPrice = parseFloat(product.price).toFixed(2).replace('.', ',');
+                            
+                            // Usa product.image_url do backend, com fallback para placeholder
+                            const imageUrl = product.image_url || 'https://placehold.co/300x200/cccccc/333333?text=Sem+Imagem';
+
+                            productCard.innerHTML = `
+                                <img src="${imageUrl}" alt="${product.name}" onerror="this.onerror=null;this.src='https://placehold.co/300x200/cccccc/333333?text=Sem+Imagem';">
+                                <h3>${product.name}</h3>
+                                <p>${product.description}</p>
+                                <span class="price">R$ ${displayPrice}</span>
+                                <button class="buy-button" data-product-id="${product.id}">
+                                    <i class="fas fa-shopping-cart"></i> Comprar
+                                </button>
+                            `;
+                            productsContainer.appendChild(productCard);
+                        });
+                    } else {
+                        productsContainer.innerHTML = '<p class="message">Nenhum produto disponível no momento. Adicione produtos no painel de administração.</p>';
+                    }
+                } catch (error) {
+                    console.error('Erro ao buscar produtos:', error);
+                    productsContainer.innerHTML = `<p class="message error">Erro ao carregar produtos: ${error.message}. Verifique a conexão com o backend.</p>`;
                 }
             };
 
@@ -394,12 +355,25 @@
                 const buyButton = event.target.closest('.buy-button');
                 if (buyButton) {
                     const productId = parseInt(buyButton.dataset.productId);
-                    selectedProduct = mockProducts.find(p => p.id === productId);
-                    if (selectedProduct) {
-                        paymentModal.style.display = 'flex';
-                        paymentMessage.textContent = '';
-                        paymentForm.reset();
-                    }
+                    // Agora, precisamos buscar o produto exato que está na tela (que veio do backend)
+                    // Para isso, faremos uma requisição GET para /products/:id
+                    fetch(`${API_URL}/products/${productId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Produto não encontrado no servidor.');
+                            }
+                            return response.json();
+                        })
+                        .then(product => {
+                            selectedProduct = product;
+                            paymentModal.style.display = 'flex';
+                            paymentMessage.textContent = '';
+                            paymentForm.reset();
+                        })
+                        .catch(error => {
+                            console.error('Erro ao obter detalhes do produto:', error);
+                            alert(`Erro ao carregar detalhes do produto: ${error.message}`); // Usando alert temporariamente para feedback
+                        });
                 }
             });
 
@@ -415,7 +389,7 @@
                 }
             });
 
-            // Lógica de simulação de pagamento
+            // Lógica de simulação de pagamento e envio do TOKEN para o backend
             paymentForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 paymentMessage.textContent = 'Processando pagamento...';
@@ -426,51 +400,67 @@
                 const expiryDate = document.getElementById('expiry-date').value;
                 const cvv = document.getElementById('cvv').value;
 
-                // Simulação de validação básica (apenas para demonstração)
-                if (cardNumber.length < 13 || cardNumber.length > 16 || !/^\d+$/.test(cardNumber)) {
-                    paymentMessage.textContent = 'Número do cartão inválido.';
-                    paymentMessage.classList.add('error');
-                    return;
-                }
-                if (!cardName.trim()) {
-                    paymentMessage.textContent = 'Nome no cartão é obrigatório.';
-                    paymentMessage.classList.add('error');
-                    return;
-                }
-                if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiryDate)) {
-                    paymentMessage.textContent = 'Data de validade inválida (MM/AA).';
-                    paymentMessage.classList.add('error');
-                    return;
-                }
-                if (!/^\d{3,4}$/.test(cvv)) {
-                    paymentMessage.textContent = 'CVV inválido.';
+                // Validação básica (apenas para demonstração)
+                if (!cardNumber || !cardName || !expiryDate || !cvv) {
+                    paymentMessage.textContent = 'Preencha todos os dados do cartão.';
                     paymentMessage.classList.add('error');
                     return;
                 }
 
                 try {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    // --- PASSO 1: SIMULAR ENVIO PARA GATEWAY DE PAGAMENTO (Frontend) ---
+                    paymentMessage.textContent = 'Enviando dados para o gateway...';
+                    await new Promise(resolve => setTimeout(resolve, 1500)); // Simula atraso
 
-                    const isPaymentSuccessful = Math.random() > 0.3;
+                    // SIMULAÇÃO: O gateway retorna um token (NÃO O CARTÃO REAL)
+                    const simulatedPaymentToken = `tok_${Date.now()}_${Math.random().toString(36).substr(2, 10)}`;
+                    const isGatewaySuccess = Math.random() > 0.8; // 80% de chance de o gateway aceitar
 
-                    if (isPaymentSuccessful) {
-                        paymentMessage.textContent = `Pagamento de R$ ${selectedProduct.price.toFixed(2).replace('.', ',')} para ${selectedProduct.name} aprovado!`;
+                    if (!isGatewaySuccess) {
+                        paymentMessage.textContent = 'Falha na comunicação com o gateway de pagamento. Tente novamente.';
+                        paymentMessage.classList.add('error');
+                        return;
+                    }
+
+                    // --- PASSO 2: ENVIAR O TOKEN PARA O SEU BACKEND ---
+                    paymentMessage.textContent = 'Confirmando pagamento com o servidor...';
+                    const token = localStorage.getItem('authToken'); // Seu token de autenticação do usuário
+
+                    const response = await fetch(`${API_URL}/process-payment`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}` // Envia o token de autenticação do usuário
+                        },
+                        body: JSON.stringify({
+                            paymentToken: simulatedPaymentToken, // O token do gateway
+                            productId: selectedProduct.id,
+                            amount: selectedProduct.price // Usa o preço do produto selecionado
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        const finalPrice = parseFloat(selectedProduct.price).toFixed(2).replace('.', ',');
+                        paymentMessage.textContent = `Pagamento de R$ ${finalPrice} para ${selectedProduct.name} aprovado!`;
                         paymentMessage.classList.add('success');
                         setTimeout(() => {
                             paymentModal.style.display = 'none';
                             paymentForm.reset();
                         }, 3000);
                     } else {
-                        paymentMessage.textContent = 'Pagamento recusado. Tente novamente ou use outro cartão.';
+                        paymentMessage.textContent = `Erro no pagamento: ${data.error || 'Falha na confirmação.'}`;
                         paymentMessage.classList.add('error');
                     }
                 } catch (error) {
-                    console.error('Erro na simulação de pagamento:', error);
-                    paymentMessage.textContent = 'Ocorreu um erro ao processar o pagamento.';
+                    console.error('Erro geral no processo de pagamento:', error);
+                    paymentMessage.textContent = 'Ocorreu um erro inesperado ao processar o pagamento.';
                     paymentMessage.classList.add('error');
                 }
             });
 
+            // Chama a função para carregar e exibir os produtos quando a página é carregada
             fetchAndDisplayProducts();
         });
     </script>
