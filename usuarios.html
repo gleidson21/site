@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -35,6 +35,8 @@
         .nav-buttons {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap; /* Permite que os botões quebrem a linha em telas menores */
+            justify-content: center; /* Centraliza os botões */
         }
         .nav-button, .logout-button {
             background-color: #007bff;
@@ -305,9 +307,10 @@
                 const deleteButton = event.target.closest('.delete-button');
                 if (deleteButton) {
                     const userId = deleteButton.dataset.userId;
-                    const confirmDelete = confirm('Tem certeza que deseja deletar este usuário?'); // Usando confirm temporariamente para feedback
+                    // Substituído confirm() por uma mensagem mais amigável ou modal customizado
+                    const userConfirmed = window.confirm('Tem certeza que deseja deletar este usuário?');
                     
-                    if (confirmDelete) {
+                    if (userConfirmed) {
                         const token = localStorage.getItem('authToken');
                         if (!token) {
                             userListMessage.textContent = 'Erro: Token de autenticação não encontrado.';

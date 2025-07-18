@@ -300,7 +300,7 @@
             let selectedProduct = null;
             const API_URL = 'https://api-backend-2025.onrender.com'; // Sua URL do backend no Render
 
-            // --- FUNÇÃO: Verifica se o usuário está logado ---
+            // --- NOVA FUNÇÃO: Verifica se o usuário está logado ---
             const checkLoginStatus = () => {
                 const token = localStorage.getItem('authToken');
                 if (!token) {
@@ -436,10 +436,11 @@
                     paymentMessage.textContent = 'Enviando dados para o gateway...';
                     await new Promise(resolve => setTimeout(resolve, 1500)); // Simula atraso
 
-                    // FORÇADO: A simulação do gateway SEMPRE será bem-sucedida para teste
-                    const isGatewaySuccess = true; 
+                    // SIMULAÇÃO: O gateway retorna um token (NÃO O CARTÃO REAL)
+                    const simulatedPaymentToken = `tok_${Date.now()}_${Math.random().toString(36).substr(2, 10)}`;
+                    const isGatewaySuccess = Math.random() > 0.8; // 80% de chance de o gateway aceitar
 
-                    if (!isGatewaySuccess) { // Esta condição agora será sempre falsa
+                    if (!isGatewaySuccess) {
                         paymentMessage.textContent = 'Falha na comunicação com o gateway de pagamento. Tente novamente.';
                         paymentMessage.classList.add('error');
                         return;
@@ -457,14 +458,6 @@
                         return;
                     }
 
-                    // Log dos dados que serão enviados ao backend
-                    console.log('Dados enviados para /process-payment:', {
-                        productId: selectedProduct.id,
-                        amount: selectedProduct.price,
-                        paymentToken: simulatedPaymentToken,
-                        authToken: token // Logar o token (apenas para depuração, não em produção)
-                    });
-
                     const response = await fetch(`${API_URL}/process-payment`, {
                         method: 'POST',
                         headers: {
@@ -472,9 +465,9 @@
                             'Authorization': `Bearer ${token}` // Envia o token de autenticação do usuário
                         },
                         body: JSON.stringify({
-                            productId: selectedProduct.id, // ID do produto
-                            amount: selectedProduct.price, // Valor do produto
-                            paymentToken: simulatedPaymentToken // Token simulado do gateway
+                            paymentToken: simulatedPaymentToken, // O token do gateway
+                            productId: selectedProduct.id,
+                            amount: selectedProduct.price // Usa o preço do produto selecionado
                         })
                     });
 
@@ -505,4 +498,3 @@
     </script>
 </body>
 </html>
-
