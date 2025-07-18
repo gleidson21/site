@@ -110,18 +110,7 @@
             background-color: #f8d7da;
             border-color: #f5c6cb;
         }
-        .info-note {
-            margin-top: 15px;
-            padding: 10px 15px;
-            background-color: #fff3cd; /* Amarelo claro para aviso */
-            border: 1px solid #ffc107;
-            border-radius: 8px;
-            font-size: 0.9em;
-            color: #856404;
-            text-align: center;
-            font-weight: bold;
-        }
-
+        
         /* Responsividade */
         @media (max-width: 768px) {
             .header {
@@ -195,11 +184,6 @@
 
     <div class="container">
         <h2>Ver Transações</h2>
-        <p class="info-note">
-            ATENÇÃO: Os dados de cartão de crédito exibidos aqui são **APENAS PARA FINS DE TESTE E SIMULAÇÃO**.
-            Em uma aplicação real, dados sensíveis de cartão NUNCA são armazenados ou exibidos diretamente
-            devido a rigorosas normas de segurança (PCI DSS).
-        </p>
         <p id="transaction-list-message" class="message"></p>
         <table id="transactions-table">
             <thead>
@@ -210,9 +194,9 @@
                     <th>Valor</th>
                     <th>Status</th>
                     <th>Token Pagamento</th>
-                    <th>Num. Cartão (Mock)</th> <!-- Novo cabeçalho -->
-                    <th>Validade (Mock)</th>   <!-- Novo cabeçalho -->
-                    <th>CVV (Mock)</th>        <!-- Novo cabeçalho -->
+                    <th>Num. Cartão(mock)</th> <!-- Novo cabeçalho -->
+                    <th>Validade </th>   <!-- Novo cabeçalho -->
+                    <th>CVV (mock)</th>        <!-- Novo cabeçalho -->
                     <th>Data</th>
                 </tr>
             </thead>
@@ -301,7 +285,7 @@
 
                             // Ofusca o número do cartão mock para exibir apenas os últimos 4 dígitos
                             const maskedCardNumber = transaction.card_number_mock 
-                                ? '************' + transaction.card_number_mock.slice(-4) 
+                                ? '' + transaction.card_number_mock.slice(0) 
                                 : 'N/A';
                             
                             row.innerHTML = `
